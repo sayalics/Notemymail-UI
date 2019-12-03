@@ -20,10 +20,12 @@ import Dropzone from 'react-dropzone';
 import {post} from 'axios';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
 import './Upload.css';
-import samplepdf from '../../assets/samplepdf.pdf';
+import { connect } from 'react-redux';
+import {logoutUser} from '../../Actions/AuthActions';
+import { compose } from 'redux';
+import {Link , withRouter} from 'react-router-dom';
 
 
-  
 const styles = theme => ({
   root: {
     display: 'flex',
@@ -83,8 +85,11 @@ class UploadButton extends React.Component {
     openmodal: false,
     selectedIndex : 0,
     placement: null,
-    file: null,  
-    foldername: null 
+    files: null,  
+    folders: null,
+    foldername: null,
+    uploading:false, 
+    response:{}
     
   };
     this.onfileuploadsubmit = this.onfileuploadsubmit.bind(this)
@@ -126,6 +131,33 @@ class UploadButton extends React.Component {
     console.log(acceptedFiles);
   }
 
+  componentDidMount() {
+    const { user } = this.props.auth;
+    fetch("https://cors-anywhere.herokuapp.com/http://159.203.93.44/get_mydrive?emailID=" + user.email)
+      .then(res => res.json())
+      .then(
+        (result) => {
+          this.setState({
+            isLoaded: true,
+            files: result.files,
+            folders: result.folders
+          });
+        },
+        // Note: it's important to handle errors here
+        // instead of a catch() block so that we don't swallow
+        // exceptions from actual bugs in components.
+        (error) => {
+          this.setState({
+            isLoaded: true,
+            error
+          });
+        }
+      )
+  }
+
+  
+ 
+
   handleClick = placement => event => {
     const { currentTarget } = event;
     this.setState(state => ({
@@ -137,35 +169,45 @@ class UploadButton extends React.Component {
 
   onfileuploadsubmit(e){
     e.preventDefault() // Stop form submit
-    this.fileUpload(this.state.file).then((response)=>{
-      console.log(response.data);
-    })
+    this.fileUpload(this.state.files)
+    
   }
   onSelectfile(e) {
-    this.setState({file:e.target.files[0]})
+    this.setState({files:e.target.files[0]})
   }
-  fileUpload(file){
+  fileUpload(filename){
+    const { user } = this.props.auth;
+    const { files } = this.state;
     const url = 'https://cors-anywhere.herokuapp.com/http://159.203.93.44/file_upload';
     const formData = new FormData();
-    formData.append('emailID', 'rohan')
-    formData.append('folderpath', './storage/rohan/MyDrive')
-    formData.append('file',file)
+    formData.append('emailID', user.email)
+    formData.append('folderpath', './storage/'+ user.email +'/MyDrive')
+    formData.append('file',files)
     const config = {
         headers: {
             'content-type': 'multipart/form-data'
         }
     }
-    this.setState({open:false});
+    this.setState({
+      open:false,
+    });
     return  post(url, formData,config)
-    
+    .then((response)=>{
+      console.log(response.data);
+      
+    });
   }
 
+
+  
+  
   
   createfolder = () => {
+    const { user } = this.props.auth;
     const url = 'https://cors-anywhere.herokuapp.com/http://159.203.93.44/creat_newfolder';
     const formData = new FormData();
-    formData.append('emailID', 'rohan')
-    formData.append('folderpath', './storage/rohan/MyDrive')
+    formData.append('emailID', user.email)
+    formData.append('folderpath', './storage/'+ user.email +'/MyDrive')
     formData.append('foldername', this.state.foldername )
     const config = {
         headers: {
@@ -177,6 +219,7 @@ class UploadButton extends React.Component {
     return  post(url, formData,config)
     .then((response)=>{
       console.log(response.data);
+      
     });
   }
   
@@ -250,7 +293,9 @@ class UploadButton extends React.Component {
                                 </div>
                             </Modal>
                         <Divider />
-                        <ListItem button
+
+                         
+                        <ListItem button 
                         selected={this.state.selectedIndex === 2}
                         onClick={event => this.handleListItemClick(event, 2)}
                         >
@@ -259,13 +304,14 @@ class UploadButton extends React.Component {
                         </ListItemIcon>
                             
                         <form onSubmit={this.onfileuploadsubmit} >
-                          <input type="file" onChange={this.onSelectfile} multiple/>
+                          <input type="file" onChange={this.onSelectfile}   />
                           <button type="submit" >Upload files</button>
                         </form>
 
                                
                         </ListItem>
-                        <ListItem button 
+                        
+                        {/* <ListItem button 
                         selected={this.state.selectedIndex === 3}
                         onClick={event => this.handleListItemClick(event, 3)}>
                         <ListItemIcon >
@@ -275,7 +321,7 @@ class UploadButton extends React.Component {
 
                                 <ListItemText primary="Upload folder"  />
                                                       
-                        </ListItem>
+                        </ListItem> */}
                     </List>
                 </Paper>
                 </ClickAwayListener> 
@@ -288,11 +334,19 @@ class UploadButton extends React.Component {
     );
   }
 }
-
 UploadButton.propTypes = {
   classes: PropTypes.object.isRequired,
+  logoutUser: PropTypes.func.isRequired,
+  auth: PropTypes.object.isRequired
+
 };
 
+const mapStateToProps = state => ({
+  auth: state.auth
+});
 
-export default withStyles(styles)(UploadButton);
+export default compose(
+  withStyles(styles),
+  connect(mapStateToProps, {logoutUser})
+)(withRouter(UploadButton))
 

@@ -72,7 +72,7 @@ class InstituteLayout extends React.Component {
             Icon2 = {MailIcon} title2="Mail Service" link2="/inbox"
             Icon3 = {VideoIcon} title3="Video Chat" 
             Icon4 = {TeacherIcon} title4="Teacher" link4="/teacherlist"
-            Icon5 = {StudentIcon} title5="Student" link5="/studentlist"
+            // Icon5 = {StudentIcon} title5="Student" link5="/studentlist"
             
             />
       <main className={classes.content}>

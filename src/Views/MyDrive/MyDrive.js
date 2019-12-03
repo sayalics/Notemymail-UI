@@ -1,15 +1,17 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import {withStyles} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
-import {Link} from 'react-router-dom';
-import CardMedia from '@material-ui/core/CardMedia';
+import {Link , withRouter} from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 import Container from '@material-ui/core/Container';
 import { Divider } from '@material-ui/core';
 import {  ContextMenu, ContextMenuTrigger } from "react-contextmenu";
 import {  MenuItem} from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/DeleteOutline';
+import DownloadIcon from '@material-ui/icons/ArrowDownward';
 import ViewIcon from '@material-ui/icons/VisibilityOutlined';
 import FileViewer from 'react-file-viewer';
 import Modal from '@material-ui/core/Modal';
@@ -21,7 +23,12 @@ import samplezip from  '../../assets/samplezip.zip';
 import samplexlsx from '../../assets/samplexlsx.xlsx';
 import tests from '../../assets/tests.py';
 import SampleSpec from '../../assets/SampleSpec.docx';
-import {post} from 'axios';
+import DetailsIcon from '@material-ui/icons/InfoOutlined';
+import {logoutUser} from '../../Actions/AuthActions';
+import { compose } from 'redux';
+import CardContent from '@material-ui/core/CardContent';
+import CardMedia from '@material-ui/core/CardMedia';
+
 
 const styles = theme => ({
     root: {
@@ -37,7 +44,10 @@ const styles = theme => ({
         display: 'flex',
         flexDirection: 'column',
         alignItems:'center',
+        justifyContent:'center',
         boxShadow:'none',
+        padding: theme.spacing(8),
+        paddingBottom: theme.spacing(0),
         // border: '1px solid',
         // borderColor:'#e5e5e5'
       },
@@ -49,11 +59,7 @@ const styles = theme => ({
         backgroundColor: theme.palette.background.paper,
         boxShadow : theme.shadows[3]
       },
-      cardMedia:{
-        padding: theme.spacing(5),
-        paddingBottom: theme.spacing(1)
-
-      },
+     
       papermodal: {
         position: 'relative',
         width: theme.spacing(120),
@@ -68,6 +74,19 @@ const styles = theme => ({
         alignItems: 'center',
         justifyContent: 'center',
       },
+      papermodaldetails: {
+        position: 'absolute',
+        width: theme.spacing(51),
+        backgroundColor: theme.palette.background.paper,
+        boxShadow: theme.shadows[5],
+        padding: theme.spacing(4),
+        outline: 'none',
+      },
+       modaldetails: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
       
       contextmenu : {
         backgroundColor: theme.palette.background.paper,
@@ -76,34 +95,49 @@ const styles = theme => ({
       
 })
 
+
 class MyDrive extends React.Component{
   constructor(props){
     super(props);
     this.state = {
           open : false,
+          opendetails:false,
           mydrive: [],
           error: null,
           isLoaded: false,
           files: [],
-          folders: []
-        
+          folders: [],
+          response: {},
     }
   }
 
   handleOpenFile = () => {
     this.setState({open: true});
-  }
+  };
 
   handleCloseFile = () => {
     this.setState({open: false});
-  }
+  };
+
+  handleOpenDetails = () => {
+    this.setState({opendetails: true});
+  };
+
+  handleCloseDetails = () => {
+    this.setState({opendetails: false});
+  };
  
   handleClickAway = () => {
     this.setState({ open: false });  
   };
 
+  handleClickAwayDetails = () => {
+    this.setState({ opendetails: false });  
+  };
+
   componentDidMount() {
-    fetch("https://cors-anywhere.herokuapp.com/http://159.203.93.44/get_mydrive?emailID=rohan")
+    const { user } = this.props.auth;
+    fetch("https://cors-anywhere.herokuapp.com/http://159.203.93.44/get_mydrive?emailID=" + user.email)
       .then(res => res.json())
       .then(
         (result) => {
@@ -123,27 +157,157 @@ class MyDrive extends React.Component{
           });
         }
       )
+  }  
+  
+  componentWillReceiveProps(nextProps) {
+    if (!nextProps.files && nextProps.folders === this.state.files && this.state.folders) {
+      this.setState({
+        files: nextProps.files,
+        folders: nextProps.folders
+      });
+  }
+}
+    
+ 
+  deletefile(filename) {
+    const { files } = this.state;
+    const { user } = this.props.auth;
+    const apiUrl = 'https://cors-anywhere.herokuapp.com/http://159.203.93.44/delete_file';
+    const formData = new FormData();
+    formData.append('emailID', user.email)
+    formData.append('folderpath', './storage/'+ user.email +'/MyDrive')
+    formData.append('filename', filename )
+    const options = {
+      method: 'POST',
+      body: formData
+    }
+
+    fetch(apiUrl, options)
+      .then(res => res.json())
+      .then(
+        (result) => {
+          this.setState({
+            response: result,
+            files: files.filter(item => item.filename !== filename)
+          });
+        },
+        (error) => {
+          this.setState({ error });
+        }
+      )
+      
+  }
+
+  deletefolder(foldername) {
+    const { folders } = this.state;
+    const { user } = this.props.auth;
+    const apiUrl = 'http://159.203.93.44/delete_folder';
+    const formData = new FormData();
+    formData.append('emailID', user.email)
+    formData.append('folderpath', './storage/'+ user.email +'/MyDrive/' + foldername)
+    formData.append('foldername', foldername )
+    
+    const options = {
+      method: 'POST',
+      body: formData
+    }
+
+    fetch(apiUrl, options)
+      .then(res => res.json())
+      .then(
+        (result) => {
+          this.setState({
+            response: result,
+            folders: folders.filter(item => item.foldername !== foldername)
+          });
+        },
+        (error) => {
+          this.setState({ error });
+        }
+      )
+      
+  }
+ 
+  downloadfile(filename) {
+    const { user } = this.props.auth;
+    const apiUrl = 'https://cors-anywhere.herokuapp.com/http://159.203.93.44/download_file';
+    const formData = new FormData();
+    formData.append('emailID', user.email )
+    formData.append('filename', filename )
+    formData.append('folderpath', './storage/'+ user.email +'/MyDrive')
+    const options = {
+      method: 'POST',
+      body: formData,
+      responseType: 'blob'
+    }
+
+    fetch(apiUrl, options)
+    .then(res => res.blob())          // convert to plain text
+    // .then(blob => console.log(blob))  // then log it out
+    .then(blob => {
+      var url = window.URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
+      a.click();    
+      a.remove();  //afterwards we remove the element again         
+  });
+      
   }
  
 
-  deletefile = () => {
-    const url = 'https://cors-anywhere.herokuapp.com/http://159.203.93.44/delete_file';
-    const formData = new FormData();
-    formData.append('emailID', 'rohan')
-    formData.append('folderpath', './storage/rohan/MyDrive')
-    formData.append('filename', "Logo.png" )
+  // viewfile(filename) {
+  //   const { user } = this.props.auth;
+  //   const apiUrl = 'https://cors-anywhere.herokuapp.com/http://159.203.93.44/download_file';
+  //   const formData = new FormData();
+  //   formData.append('emailID', user.email )
+  //   formData.append('filename', filename )
+  //   formData.append('folderpath', './storage/'+ user.email +'/MyDrive')
+  //   const options = {
+  //     method: 'POST',
+  //     body: formData,
+  //     responseType: 'blob'
+  //   }
 
-    const config = {
-        headers: {
-            'content-type': 'multipart/form-data'
-        }
+  //   fetch(apiUrl, options)
+  //   .then(res => 
+  //     res.blob()
+  //   )         
+  //   .then(blob => {
+  //     return blob
+  //   });
+     
+  // }
+
+
+
+  downloadfolder(foldername) {
+    const { user } = this.props.auth;
+    const apiUrl = 'https://cors-anywhere.herokuapp.com/http://159.203.93.44/download_folder';
+    const formData = new FormData();
+    formData.append('emailID', user.email)
+    formData.append('filename', foldername )
+    formData.append('folderpath', './storage/'+ user.email +'/MyDrive/' + foldername)
+    const options = {
+      method: 'POST',
+      body: formData,
+      responseType: 'blob'
     }
-    this.setState({openmodal:false});
-    this.setState({open: false})
-    return  post(url, formData,config)
-    .then((response)=>{
-      console.log(response.data);
-    });
+
+    fetch(apiUrl, options)
+    .then(res => res.blob())          // convert to plain text
+    // .then(blob => console.log(blob))  // then log it out
+    .then(blob => {
+      var url = window.URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = foldername;
+      document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
+      a.click();    
+      a.remove();  //afterwards we remove the element again         
+  });
+      
   }
 
   
@@ -154,9 +318,10 @@ class MyDrive extends React.Component{
   }   
 
     render(){
+     
         const { classes } = this.props;
+        const { user } = this.props.auth;
         const { error, isLoaded, files, folders } = this.state;
-
         var filelist = [
           {"filename":"SampleSpec.docx" , "filepath": SampleSpec }, 
           {"filename":"samplepdf.pdf" , "filepath": samplepdf },
@@ -166,21 +331,19 @@ class MyDrive extends React.Component{
           {"filename":"tests.py" , "filepath": tests },
   
         ]
+
+        
         const filesIcon = files.map((item) => {
             const x = this.fileNameAndExt(item.filename);
             return(
-                // <div style={{height:200, width:200}}>
-                // <FileIcon extension={x[1]} {...defaultStyles[x[1]]} />
-                // </div>
+                
                 <Grid item  xs={12} sm={6} md={3} lg={2}>
-                <ContextMenuTrigger id="some_unique_identifier">
-                  <Card className={classes.card}>
-                    <CardMedia className={classes.cardMedia}>
+                <ContextMenuTrigger id={item.filename} >
+                   <Card className={classes.card}> 
                     
-                    <FileIcon extension={x[1]} {...defaultStyles[x[1]]} />
+                    <FileIcon extension={x[1]} {...defaultStyles[x[1]]}  />
                     
-                    </CardMedia>
-                    <Typography  variant="h6" component="h2">
+                    <Typography  style={{marginTop:'5px'}} variant="h6" align="center"  component="h3">
                         {x[0]}.{x[1]}
                       </Typography>
                     </Card>
@@ -192,76 +355,123 @@ class MyDrive extends React.Component{
         const foldericon = folders.map((item) => {
           const x = this.fileNameAndExt(item.foldername);
           return(
-              // <div style={{height:200, width:200}}>
-              // <FileIcon extension={x[1]} {...defaultStyles[x[1]]} />
-              // </div>
+              
               <Grid item  xs={12} sm={6} md={3} lg={2}>
-              <ContextMenuTrigger id="some_unique_identifier">
+                <ContextMenuTrigger id={item.foldername}>
                 <Link to="/view" style={{textDecorationLine:'none'}}>
                 <Card className={classes.card}>
-                  <CardMedia className={classes.cardMedia}>
                   
-                  <FolderIcon style={{fontSize:'120px', color:'orange'}}  />
+                  <FolderIcon  style={{fontSize:'80px', color:'orange'}}  />
                   
-                  </CardMedia>
-                  <Typography  variant="h6" component="h2">
+                  <Typography  variant="h6" align="center"  component="h3">
                       {x[1]}
                     </Typography>
                   </Card>
                   </Link>
-              </ContextMenuTrigger>
+                  </ContextMenuTrigger>
             </Grid>
           )
       })
 
+
+      
 
         
         if (error) {
           return <div>Error: {error.message}</div>;
         } else if (!isLoaded) {
           return <div>Loading...</div>;
+        } else if (files.length === 0 && folders.length === 0) {
+          return(
+             <div>
+               <Container className={classes.cardGrid} maxWidth="100%" >
+                <Typography variant='h5' > My Drive </Typography>
+                <Divider style={{marginBottom:'2%'}} />
+                <Grid container item  xs={12} sm={12} md={12} lg={12}  className={classes.card} >
+                  
+                          <DetailsIcon style={{fontSize:100}} color="action" />
+                        
+                          <Typography  variant="h5" component="h2" color="textSecondary">
+                            Your drive is empty
+                          </Typography>
+                        
+                  
+                </Grid>
+              </Container>
+
+             </div>
+          )
         } else {
-          return (
+          return (    
           
-        <Grid direction="column">
+        <Grid direction="column" >
 
         <Container className={classes.cardGrid} maxWidth="100%" >
           <Typography variant='h5'> My Drive </Typography>
           <Divider style={{marginBottom:'2%'}} />
-          <Typography variant="h6" color="textPrimary">Folders</Typography>
           {/* End hero unit */}
           
-          <Grid container spacing={8} direction="row" >
+          <Grid container spacing={5} direction="row" >
           
                 {foldericon}
-           
+                
           </Grid>
            
         </Container>
 
 
         <Container className={classes.cardGrid} maxWidth="100%" >
-          <Typography variant="h6" color="textPrimary">Files</Typography>
           {/* End hero unit */}
-          <Grid container spacing={8} direction="row" >
+          <Grid container spacing={5} direction="row" >
             {filesIcon}
           </Grid>
+          </Container>
           
-          <ContextMenu id="some_unique_identifier" className={classes.contextmenu} >
-                
+          {files.map(item => (
+          <ContextMenu id={item.filename} className={classes.contextmenu} >
+
                 <MenuItem 
                     className={classes.Container}
                     onClick={this.handleOpenFile}
                 > 
                             {<ViewIcon color="action" style={{marginRight:'15px'}} />} View
-                </MenuItem>
-                <MenuItem onClick={this.deletefile}> {<DeleteIcon color="action" style={{marginRight:'15px'}}/>} Delete</MenuItem>
-                
-              
+                </MenuItem>             
+                           
+                  <MenuItem  onClick={() => this.deletefile(item.filename)}> 
+                  {<DeleteIcon color="action" style={{marginRight:'15px'}}/>} Delete 
+                  </MenuItem>                  
+               
+                                       
+                  <MenuItem   onClick={() => this.downloadfile(item.filename)}> 
+                  {<DownloadIcon color="action" style={{marginRight:'15px'}}/>} Download 
+                  </MenuItem>
+                   
             </ContextMenu>
+          ))}
+
+           {folders.map(item => (
+            <ContextMenu id={item.foldername} className={classes.contextmenu} >
+            
+                  <MenuItem key={item.foldername} onClick={() => this.handleOpenDetails(item.foldername)}> 
+                  {<DetailsIcon color="action" style={{marginRight:'15px'}}/>} Details 
+                  </MenuItem>
+
+                  <MenuItem   onClick={() => this.downloadfolder(item.foldername)}> 
+                  {<DownloadIcon color="action" style={{marginRight:'15px'}}/>} Download
+                  </MenuItem>
+                      
+                  <MenuItem  onClick={() => this.deletefolder(item.foldername)}> 
+                  {<DeleteIcon color="action" style={{marginRight:'15px'}}/>} Delete 
+                  </MenuItem>
+                  
+
+                  
+            </ContextMenu>
+           ))}
          
             {files.map(item => (
-                          <div key={item.files}>
+                     <div key={item.filename}> 
+            
             <Modal
                           aria-labelledby="simple-modal-title"
                           aria-describedby="simple-modal-description"
@@ -280,14 +490,49 @@ class MyDrive extends React.Component{
                           
             </Modal>
             </div>
+            ))}
+
+            {folders.map(item => (                          
+            <Modal
+                          aria-labelledby="simple-modal-titles"
+                          aria-describedby="simple-modal-descriptions"
+                          open={this.state.opendetails}
+                          onClose={this.handleCloseDetails}
+                          onClickAway={this.handleClickAwayDetails}
+                          className={classes.modaldetails}
+                          >
+                            
+                          <div  className={classes.papermodaldetails} key={item.foldername} >
+                             <h4>Type  : {item.Type} </h4>
+                             <h4>Location  : {item.Location}</h4> 
+                             <h4>Owner  : {item.owner}</h4>  
+                             <h4>Modified  : {item.Modified.time} by {item.Modified.by}  </h4>  
+                             <h4>Opened  : {item.Opened.time} by {item.Modified.by} </h4>  
+                             <h4>Created  : {item.Created.time} by {item.Created.by}</h4>              
+                          </div>
+                          
+            </Modal>
                            ))}
-        </Container>
         
         </Grid>
 
-);       
-}
+        );       
+        }
+      }
     }
-  }
 
-export default withStyles(styles) (MyDrive);
+  MyDrive.propTypes = {
+    classes: PropTypes.object.isRequired,
+    logoutUser: PropTypes.func.isRequired,
+    auth: PropTypes.object.isRequired
+  
+  };
+  
+  const mapStateToProps = state => ({
+    auth: state.auth
+  });
+  
+  export default compose(
+    withStyles(styles),
+    connect(mapStateToProps, {logoutUser})
+  )(withRouter(MyDrive))

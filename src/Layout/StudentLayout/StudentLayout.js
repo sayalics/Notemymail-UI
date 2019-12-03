@@ -58,7 +58,6 @@ class StudentLayout extends React.Component {
             Icon2 = {MailIcon} title2="Mail service" link2="/inbox"
             Icon3 = {VideoIcon} title3="Video chat" 
             Icon4 = {"InstituteIcon"} 
-            Icon5 = {"StaffIcon"}  
             />
       <main className={classes.content}>
         <div className={classes.toolbar}/>  

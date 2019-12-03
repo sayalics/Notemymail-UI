@@ -43,7 +43,7 @@ class DriveLayout extends React.Component {
             Icon1={"MailIcon"}
             Icon2={"MailIcon"}
             Icon3={"Mailicon"}
-            Icon4={"MailIcon"}
+            Icon4={"MailIcon"} 
             Icon5={VideoIcon}
             Icon6={NotificationsIcon}
             />   
@@ -53,7 +53,6 @@ class DriveLayout extends React.Component {
             Icon2 = {SharedIcon} title2="Shared with me" link2="/shared"
             Icon3 = {RecentIcon} title3="Recent" link3="/recent"
             Icon4 = {TrashIcon} title4="Trash" link4="/trash"
-            Icon5 = {"TrashIcon"} 
 
             />
       <main className={classes.content}>

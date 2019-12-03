@@ -59,7 +59,6 @@ class EmailLayout extends React.Component {
             Icon2 = {SendIcon} title2="Sent" link2="/sent"
             Icon3 = {DraftIcon} title3="Drafts" link3="/draft"
             Icon4 = {TrashIcon} title4="Trash" 
-            Icon5 = {"TrashIcon"} 
             />
       <main className={classes.content}>
         <div className={classes.toolbar}/>  

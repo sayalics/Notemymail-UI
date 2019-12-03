@@ -37,6 +37,9 @@ const styles = theme => ({
         flexDirection: 'column',
         alignItems:'center',
         boxShadow:'none',
+        padding: theme.spacing(8),
+        paddingBottom: theme.spacing(0)
+
         // border: '1px solid',
         // borderColor:'#e5e5e5'
       },
@@ -119,11 +122,9 @@ class Shared extends React.Component{
                 <Grid item  xs={12} sm={6} md={3} lg={2}>
                 <ContextMenuTrigger id="some_unique_identifier">
                   <Card className={classes.card}>
-                    <CardMedia className={classes.cardMedia}>
                     
                     <FileIcon extension={x[1]} {...defaultStyles[x[1]]} />
-                    </CardMedia>
-                      <Typography gutterBottom variant="h6" component="h2">
+                    <Typography  style={{marginTop:'5px'}} variant="h6" align="center"  component="h3">
                         {x[0]}.{x[1]}
                       </Typography>
                     </Card>
@@ -138,8 +139,7 @@ class Shared extends React.Component{
         <Container className={classes.cardGrid} maxWidth="100%" >
           <Typography variant='h5'> Shared with me </Typography>
           <Divider style={{marginBottom:'2%'}} />
-          <Typography variant="h6" color="textPrimary">Files</Typography>
-          <Grid container spacing={8} direction="row" >
+          <Grid container spacing={5} direction="row" >
             
             {filesIcon}
               

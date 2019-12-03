@@ -147,7 +147,8 @@ class Topbar extends React.Component {
         open={isMenuOpen}
         onClose={this.handleMenuClose}
       >
-        <MenuItem > My account </MenuItem>
+        <MenuItem > <h3>{user.email}</h3> </MenuItem>
+        {/* <MenuItem >My account </MenuItem> */}
         <MenuItem onClick={this.onLogoutClick}>Logout 
         <IconButton>
           <LogoutICon edge="right" fontSize="large" />
@@ -183,9 +184,9 @@ class Topbar extends React.Component {
       </Menu>
     );
 
-  var meetingID = this.randomMeetingId(5, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-  var hreflink = 'https://video.notemymail.team/'+meetingID
-  console.log(hreflink);
+  // var meetingID = this.randomMeetingId(5, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+ var hreflink = 'https://video.notemymail.team/'
+  // console.log(hreflink);
 
     return (
       <div className={classes.root}>

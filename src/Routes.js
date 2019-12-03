@@ -2,7 +2,6 @@ import React from 'react';
 import { Switch, Redirect, BrowserRouter } from 'react-router-dom';
 import { RouteWithLayout } from './Components/RouteWithLayout/index';
 import { DriveLayout , EmailLayout, MinimalLayout , OrganizationLayout,InstituteLayout,StudentLayout,TeacherLayout } from './Layout/index';
-
 import {
   MyDrive as MyDriveView,
   Shared as SharedView,
@@ -61,7 +60,7 @@ if (localStorage.jwtToken) {
     // Logout user
     store.dispatch(logoutUser());
     // Redirect to login
-    window.location.href = "./login";
+    window.location.href = "./signin";
   }
 }
 
@@ -74,9 +73,9 @@ const Routes = (appProps) => {
       <Redirect
         exact
         from="/"
-        to="/mydrive"
+        to="/signin"
       />
-      <RouteWithLayout
+      <PrivateRoute
         component={MyDriveView}
         exact
         layout={DriveLayout}

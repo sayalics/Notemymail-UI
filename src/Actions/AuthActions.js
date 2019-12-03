@@ -9,7 +9,7 @@ import {
 // Register User
 export const RegisterUser = (newUser, history) => dispatch => {
   axios
-    .post("http://159.203.93.44/api/users/register", newUser)
+    .post("https://cors-anywhere.herokuapp.com/http://159.203.93.44/registration", newUser)
     .then(res => history.push("/signin")) // re-direct to login on successful register
     .catch(err =>
       dispatch({
@@ -21,7 +21,7 @@ export const RegisterUser = (newUser, history) => dispatch => {
 // Login - get user token
 export const LoginUser = userData => dispatch => {
   axios
-    .post("http://159.203.93.44/api/users/login", userData)
+    .post("https://cors-anywhere.herokuapp.com/http://159.203.93.44:3000/api/users/login", userData)
     .then(res => {
       // Save to localStorage
 // Set token to localStorage
@@ -34,7 +34,12 @@ export const LoginUser = userData => dispatch => {
       // Set current user
       dispatch(setCurrentUser(decoded));
     })
-    
+    .catch(err =>
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data
+      })
+    );
 };
 // Set logged in user
 export const setCurrentUser = decoded => {

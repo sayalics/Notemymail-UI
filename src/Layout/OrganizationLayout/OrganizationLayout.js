@@ -58,7 +58,7 @@ class OrganizationLayout extends React.Component {
             Icon2 = {MailIcon} title2="Mail service" link2="/inbox"
             Icon3 = {VideoIcon} title3="Video chat" 
             Icon4 = {InstituteIcon} title4="Institute" link4="/instilist"
-            Icon5 = {StaffIcon} title5="stafflist" 
+            // Icon5 = {StaffIcon} title5="stafflist" 
             />
       <main className={classes.content}>
         <div className={classes.toolbar}/>  

@@ -35,6 +35,11 @@ const styles = (theme => ({
     width: '100%', // Fix IE 11 issue.
     marginTop: theme.spacing(1),
   },
+  redtext:{
+    color:'red',
+    fontWeight: 'bolder'
+    
+  },
   submit: {
     margin: theme.spacing(3, 0, 2),
   },
@@ -59,7 +64,7 @@ class SignIn extends React.Component  {
     }
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps) {
     if (nextProps.auth.isAuthenticated) {
       this.props.history.push("/mydrive"); // push user to dashboard when they login
     }if (nextProps.errors) {
@@ -104,6 +109,7 @@ class SignIn extends React.Component  {
                 </Typography>
                 <form className={classes.form}
                 onSubmit={this.onSubmit}
+                noValidate
                   >
                 <div>
                   <TextField
@@ -114,16 +120,18 @@ class SignIn extends React.Component  {
                     id="email"
                     label="Email Address"
                     name="email"
-                    autoComplete="email"
                     type="email"
                     value={this.state.email}
                     onChange={e => this.setState({ email: e.target.value })} 
-                    error={errors.emailnotfound}
+                    error={errors.email}
                     className={classnames("", {
-                      invalid: errors.emailnotfound
+                      invalid: errors.email || errors.emailnotfound
                     })}                 
                     />
-                    <span className="red-text">{errors.emailnotfound}</span>
+                    <span className={classes.redtext} >
+                      {errors.email}
+                      {errors.emailnotfound}
+                      </span>
                 </div>
                 <div>
                   <TextField
@@ -135,15 +143,14 @@ class SignIn extends React.Component  {
                     label="Password"
                     type="password"
                     id="password"
-                    autoComplete="current-password"
                     value={this.state.password}
                     onChange={e => this.setState({ password: e.target.value })} 
-                    error={errors.password && errors.passwordincorrect} 
+                    error={errors.password} 
                     className={classnames("", {
                       invalid: errors.password || errors.passwordincorrect
                     })}
                  />
-                  <span className="red-text">
+                  <span className={classes.redtext}>
                   {errors.password}
                   {errors.passwordincorrect}
                 </span>
@@ -160,7 +167,7 @@ class SignIn extends React.Component  {
                     variant="contained"
                     color="primary"
                     className={classes.submit}
-                    disabled={!this.validateForm()}
+                    // disabled={!this.validateForm()}
                     type='submit'
                 >
                     Sign In

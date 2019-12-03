@@ -34,6 +34,11 @@ import classnames from 'classnames';
     width: '100%', // Fix IE 11 issue.
     marginTop: theme.spacing(2),
   },
+  redtext:{
+    color:'red',
+    fontWeight: 'bolder'
+    
+  },
   submit: {
     margin: theme.spacing(1, 0, 1),
   },
@@ -131,7 +136,7 @@ class SignUp extends React.Component{
                   invalid: errors.firstName
                 })}          
                  />
-              	<span className="red-text">{errors.firstName}</span>
+              	<span className={classes.redtext}>{errors.firstName}</span>
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -149,7 +154,7 @@ class SignUp extends React.Component{
                   invalid: errors.lastName
                 })}          
                  />
-              	<span className="red-text">{errors.lastName}</span>
+              	<span className={classes.redtext}>{errors.lastName}</span>
               	                
               
             </Grid>
@@ -169,7 +174,7 @@ class SignUp extends React.Component{
                   invalid: errors.email
                 })}          
                  />
-              	<span className="red-text">{errors.email}</span>
+              	<span className={classes.redtext}>{errors.email}</span>
               	
               
               
@@ -190,7 +195,7 @@ class SignUp extends React.Component{
                   invalid: errors.mobile
                 })}          
                  />
-              	<span className="red-text">{errors.mobile}</span>
+              	<span className={classes.redtext}>{errors.mobile}</span>
 
             </Grid>
             <Grid item xs={12}>
@@ -212,7 +217,7 @@ class SignUp extends React.Component{
                   invalid: errors.address
                 })}          
                  />
-              	<span className="red-text">{errors.address}</span>
+              	<span className={classes.redtext}>{errors.address}</span>
 
             </Grid>
             <Grid item xs={12}>
@@ -231,7 +236,7 @@ class SignUp extends React.Component{
                   invalid: errors.password
                 })}          
                  />
-              	<span className="red-text">{errors.password}</span>
+              	<span className={classes.redtext}>{errors.password}</span>
 						
             </Grid>
             
@@ -251,7 +256,7 @@ class SignUp extends React.Component{
                   invalid: errors.accounttype
                 })}          
                  />
-              	<span className="red-text">{errors.accounttype}</span>
+              	<span className={classes.redtext}>{errors.accounttype}</span>
 						
             </Grid>
             
